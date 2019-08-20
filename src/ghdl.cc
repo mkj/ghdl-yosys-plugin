@@ -844,17 +844,18 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 	     inst = get_next_instance(inst)) {
 		Module_Id id = get_id(inst);
 		Sname iname = get_instance_name(inst);
+		char* src_loc = get_source(inst);
 		switch (id) {
 #define IN(N) get_src(net_map, get_input_net(inst, (N)))
 #define OUT(N) get_src(net_map, get_output(inst, (N)))
 		case Id_And:
-			module->addAnd(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addAnd(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Or:
-			module->addOr(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addOr(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Xor:
-			module->addXor(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addXor(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Nand:
 			{
@@ -873,19 +874,19 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			}
 			break;
 		case Id_Xnor:
-			module->addXnor(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addXnor(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Add:
-			module->addAdd(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addAdd(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Sub:
-			module->addSub(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addSub(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Neg:
 			module->addNeg(to_str(iname), IN(0), OUT(0), true);
 			break;
 		case Id_Not:
-			module->addNot(to_str(iname), IN(0), OUT(0));
+			module->addNot(to_str(iname), IN(0), OUT(0), src_loc);
 			break;
 		case Id_Abs:
 			{
@@ -896,40 +897,40 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			}
 			break;
 		case Id_Eq:
-			module->addEq(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addEq(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Ne:
-			module->addNe(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addNe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Ult:
-			module->addLt(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Ule:
-			module->addLe(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Ugt:
-			module->addGt(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Uge:
-			module->addGe(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
 			break;
 		case Id_Slt:
-			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
 			break;
 		case Id_Sle:
-			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
 			break;
 		case Id_Sgt:
-			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
 			break;
 		case Id_Sge:
-			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
 			break;
 		case Id_Red_Or:
-			module->addReduceOr(to_str(iname), IN(0), OUT(0));
+			module->addReduceOr(to_str(iname), IN(0), OUT(0), src_loc);
 			break;
 		case Id_Red_And:
-			module->addReduceAnd(to_str(iname), IN(0), OUT(0));
+			module->addReduceAnd(to_str(iname), IN(0), OUT(0), src_loc);
 			break;
 		case Id_Red_Xor:
 			module->addReduceXor(to_str(iname), IN(0), OUT(0));
@@ -992,9 +993,9 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 				SigSpec in1 = IN(1);
 				RTLIL::Wire *w0 = module->addWire(NEW_ID, in1.size());
 				RTLIL::Wire *w1 = module->addWire(NEW_ID, in1.size());
-				module->addMux(NEW_ID, in1, IN (2), Sel0, w0);
-				module->addMux(NEW_ID, IN (3), IN (4), Sel0, w1);
-				module->addMux(NEW_ID, w0, w1, Sel1, OUT (0));
+				module->addMux(NEW_ID, in1, IN (2), Sel0, w0, src_loc);
+				module->addMux(NEW_ID, IN (3), IN (4), Sel0, w1, src_loc);
+				module->addMux(NEW_ID, w0, w1, Sel1, OUT (0), src_loc);
 			}
 			break;
 		case Id_Pmux:
@@ -1098,10 +1099,10 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			module->connect(OUT(0), IN(0));
 			break;
 		case Id_Assert:
-			module->addAssert(to_str(iname), IN(0), State::S1);
+			module->addAssert(to_str(iname), IN(0), State::S1, src_loc);
 			break;
 		case Id_Assume:
-			module->addAssume(to_str(iname), IN(0), State::S1);
+			module->addAssume(to_str(iname), IN(0), State::S1, src_loc);
 			break;
 		case Id_Cover:
 		case Id_Assert_Cover:
