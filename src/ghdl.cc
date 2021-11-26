@@ -415,6 +415,7 @@ static void import_memory(RTLIL::Module *module, std::vector<RTLIL::Wire *> &net
 	Net mem_o = get_output(inst, 0);
 	Input first_port = get_first_sink (mem_o);
 	std::string mem_str = to_str(get_instance_name(inst));
+	const std::string src_loc(get_source(inst));
 
 	//  Memories appear only once.
 	log_assert(!is_set(net_map, mem_o));
@@ -474,6 +475,7 @@ static void import_memory(RTLIL::Module *module, std::vector<RTLIL::Wire *> &net
 
 	//  Create the memory.
 	Cell *mem = module->addCell(mem_str, "$mem");
+	mem->set_src_attribute(src_loc);
 	mem->parameters["\\MEMID"] = Const(mem_str);
 	mem->parameters["\\WIDTH"] = Const(width);
 	mem->parameters["\\OFFSET"] = Const(0);
@@ -844,105 +846,105 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 	     inst = get_next_instance(inst)) {
 		Module_Id id = get_id(inst);
 		Sname iname = get_instance_name(inst);
-		char* src_loc = get_source(inst);
+		const std::string src_loc(get_source(inst));
 		switch (id) {
 #define IN(N) get_src(net_map, get_input_net(inst, (N)))
 #define OUT(N) get_src(net_map, get_output(inst, (N)))
 		case Id_And:
-			module->addAnd(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addAnd(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Or:
-			module->addOr(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addOr(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Xor:
-			module->addXor(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addXor(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Nand:
 			{
 				SigSpec r = OUT(0);
 				RTLIL::Wire *w = module->addWire(NEW_ID, r.size());
-				module->addAnd(NEW_ID, IN(0), IN(1), w);
-				module->addNot(to_str(iname), w, r);
+				module->addAnd(NEW_ID, IN(0), IN(1), w)->set_src_attribute(src_loc);
+				module->addNot(to_str(iname), w, r)->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Nor:
 			{
 				SigSpec r = OUT(0);
 				RTLIL::Wire *w = module->addWire(NEW_ID, r.size());
-				module->addOr(NEW_ID, IN(0), IN(1), w);
-				module->addNot(to_str(iname), w, r);
+				module->addOr(NEW_ID, IN(0), IN(1), w)->set_src_attribute(src_loc);
+				module->addNot(to_str(iname), w, r)->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Xnor:
-			module->addXnor(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addXnor(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Add:
-			module->addAdd(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addAdd(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Sub:
-			module->addSub(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addSub(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Neg:
-			module->addNeg(to_str(iname), IN(0), OUT(0), true);
+			module->addNeg(to_str(iname), IN(0), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Not:
-			module->addNot(to_str(iname), IN(0), OUT(0), src_loc);
+			module->addNot(to_str(iname), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Abs:
 			{
 				SigSpec isNegative = IN(0).extract(IN(0).size() - 1, 1);
 				RTLIL::Wire *negated = module->addWire(NEW_ID, IN(0).size());
-				module->addNeg(NEW_ID, IN(0), negated);
-				module->addMux(NEW_ID, IN(0), negated, isNegative, OUT(0));
+				module->addNeg(NEW_ID, IN(0), negated)->set_src_attribute(src_loc);
+				module->addMux(NEW_ID, IN(0), negated, isNegative, OUT(0))->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Eq:
-			module->addEq(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addEq(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Ne:
-			module->addNe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addNe(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Ult:
-			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addLt(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Ule:
-			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addLe(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Ugt:
-			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addGt(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Uge:
-			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), src_loc);
+			module->addGe(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Slt:
-			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
+			module->addLt(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Sle:
-			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
+			module->addLe(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Sgt:
-			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
+			module->addGt(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Sge:
-			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), true, src_loc);
+			module->addGe(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Red_Or:
-			module->addReduceOr(to_str(iname), IN(0), OUT(0), src_loc);
+			module->addReduceOr(to_str(iname), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Red_And:
-			module->addReduceAnd(to_str(iname), IN(0), OUT(0), src_loc);
+			module->addReduceAnd(to_str(iname), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Red_Xor:
-			module->addReduceXor(to_str(iname), IN(0), OUT(0));
+			module->addReduceXor(to_str(iname), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Lsl:
-			module->addShl(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addShl(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Lsr:
-			module->addShr(to_str(iname), IN(0), IN(1), OUT(0));
+			module->addShr(to_str(iname), IN(0), IN(1), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Asr:
-			module->addSshr(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addSshr(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Smin:
 		case Id_Umin:
@@ -953,38 +955,38 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 
 				RTLIL::Wire *select_rhs = module->addWire(NEW_ID);
 				if (id == Id_Smin || id == Id_Umin) {
-					module->addGt(NEW_ID, IN(0), IN(1), select_rhs, is_signed);
+					module->addGt(NEW_ID, IN(0), IN(1), select_rhs, is_signed)->set_src_attribute(src_loc);
 				} else {
-					module->addLt(NEW_ID, IN(0), IN(1), select_rhs, is_signed);
+					module->addLt(NEW_ID, IN(0), IN(1), select_rhs, is_signed)->set_src_attribute(src_loc);
 				}
 
-				module->addMux(to_str(iname), IN(0), IN(1), select_rhs, OUT(0));
+				module->addMux(to_str(iname), IN(0), IN(1), select_rhs, OUT(0))->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Smul:
-			module->addMul(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addMul(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Umul:
-			module->addMul(to_str(iname), IN(0), IN(1), OUT(0), false);
+			module->addMul(to_str(iname), IN(0), IN(1), OUT(0), false)->set_src_attribute(src_loc);
 			break;
 		case Id_Sdiv:
-			module->addDiv(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addDiv(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Udiv:
-			module->addDiv(to_str(iname), IN(0), IN(1), OUT(0), false);
+			module->addDiv(to_str(iname), IN(0), IN(1), OUT(0), false)->set_src_attribute(src_loc);
 			break;
 		case Id_Srem:
 			// Id_Urem would be the same as Id_Umod, so only the latter exists
 			// $mod: modulo of truncating division, "rem" in VHDL
-			module->addMod(to_str(iname), IN(0), IN(1), OUT(0), true);
+			module->addMod(to_str(iname), IN(0), IN(1), OUT(0), true)->set_src_attribute(src_loc);
 			break;
 		case Id_Smod:
 		case Id_Umod:
 			// $modfloor: modulo of flooring division, "mod" in VHDL
-			module->addModFloor(to_str(iname), IN(0), IN(1), OUT(0), id == Id_Smod);
+			module->addModFloor(to_str(iname), IN(0), IN(1), OUT(0), id == Id_Smod)->set_src_attribute(src_loc);
 			break;
 		case Id_Mux2:
-			module->addMux(to_str(iname), IN(1), IN(2), IN(0), OUT(0));
+			module->addMux(to_str(iname), IN(1), IN(2), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Mux4:
 			{
@@ -993,9 +995,9 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 				SigSpec in1 = IN(1);
 				RTLIL::Wire *w0 = module->addWire(NEW_ID, in1.size());
 				RTLIL::Wire *w1 = module->addWire(NEW_ID, in1.size());
-				module->addMux(NEW_ID, in1, IN (2), Sel0, w0, src_loc);
-				module->addMux(NEW_ID, IN (3), IN (4), Sel0, w1, src_loc);
-				module->addMux(NEW_ID, w0, w1, Sel1, OUT (0), src_loc);
+				module->addMux(NEW_ID, in1, IN (2), Sel0, w0)->set_src_attribute(src_loc);
+				module->addMux(NEW_ID, IN (3), IN (4), Sel0, w1)->set_src_attribute(src_loc);
+				module->addMux(NEW_ID, w0, w1, Sel1, OUT (0))->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Pmux:
@@ -1004,7 +1006,7 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			    RTLIL::SigSpec s = IN(0);
 			    for (int i = 0; i < s.size(); i++)
 				    b.append(IN(2 + i));
-			    module->addPmux(to_str(iname), IN(1), b, s, OUT(0));
+			    module->addPmux(to_str(iname), IN(1), b, s, OUT(0))->set_src_attribute(src_loc);
 			}
 			break;
 		case Id_Dff:
@@ -1014,9 +1016,10 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 				Net clk = get_input_net(get_net_parent(edge_clk), 0);
 				RTLIL::SigSpec sig_clk = get_src(net_map, clk);
 				if (has_attribute_gclk(clk))
-					module->addFf(to_str(iname), IN(1), OUT(0));
+					module->addFf(to_str(iname), IN(1), OUT(0))->set_src_attribute(src_loc);
 				else
-					module->addDff(to_str(iname), sig_clk, IN(1), OUT(0), extract_clk_pol(edge_clk) == RTLIL::State::S1);
+					module->addDff(to_str(iname), sig_clk, IN(1), OUT(0),
+						extract_clk_pol(edge_clk) == RTLIL::State::S1)->set_src_attribute(src_loc);
 				//  For idff, the initial value is set on the output wire.
 				if (id == Id_Idff) {
 					net_map[get_output(inst, 0).id]->attributes["\\init"] = IN(2).as_const();
@@ -1036,20 +1039,20 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 
 				// If the reset value (rval) is a constant, use a classic asynchronous dff.
 				if (rval.is_fully_const())
-					module->addAdff(to_str(iname), clk_sig, arst, d, q, rval.as_const(), clk_pol);
+					module->addAdff(to_str(iname), clk_sig, arst, d, q, rval.as_const(), clk_pol)->set_src_attribute(src_loc);
 				else {
 					// Otherwise, use a dffsr.
 					// set <= arst ? d : 0
 					SigSpec zero = SigSpec(RTLIL::State::S0, d.size());
 					RTLIL::Wire *set = module->addWire(NEW_ID, d.size());
-					module->addMux(NEW_ID, zero, d, arst, set);
+					module->addMux(NEW_ID, zero, d, arst, set)->set_src_attribute(src_loc);
 					//  clr <= arst ? ~d : 0
 					RTLIL::Wire *d_n = module->addWire(NEW_ID, d.size());
-					module->addNot(NEW_ID, d, d_n);
+					module->addNot(NEW_ID, d, d_n)->set_src_attribute(src_loc);
 					RTLIL::Wire *clr = module->addWire(NEW_ID, d.size());
-					module->addMux(NEW_ID, zero, d_n, arst, clr);
+					module->addMux(NEW_ID, zero, d_n, arst, clr)->set_src_attribute(src_loc);
 					//  Use dffsr
-					module->addDffsr(to_str(iname), clk_sig, set, clr, d, q, clk_pol);
+					module->addDffsr(to_str(iname), clk_sig, set, clr, d, q, clk_pol)->set_src_attribute(src_loc);
 				}
 				//  For iadff, the initial value is set on the output
 				//  wire.
@@ -1064,6 +1067,7 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 				RTLIL::Cell *cell = module->addCell(
 					to_str(iname),
 					to_str(get_module_name(get_module(inst))));
+				cell->set_src_attribute(src_loc);
 				GhdlSynth::Module submod = get_module(inst);
 				Port_Idx nbr_inputs = get_nbr_inputs(submod);
 				for (Port_Idx idx = 0; idx < nbr_inputs; idx++) {
@@ -1099,14 +1103,14 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			module->connect(OUT(0), IN(0));
 			break;
 		case Id_Assert:
-			module->addAssert(to_str(iname), IN(0), State::S1, src_loc);
+			module->addAssert(to_str(iname), IN(0), State::S1)->set_src_attribute(src_loc);
 			break;
 		case Id_Assume:
-			module->addAssume(to_str(iname), IN(0), State::S1, src_loc);
+			module->addAssume(to_str(iname), IN(0), State::S1)->set_src_attribute(src_loc);
 			break;
 		case Id_Cover:
 		case Id_Assert_Cover:
-			module->addCover(to_str(iname), IN(0), State::S1);
+			module->addCover(to_str(iname), IN(0), State::S1)->set_src_attribute(src_loc);
 			break;
 		case Id_Allconst:
 			add_formal_input(module, net_map, inst, "$allconst");
@@ -1121,7 +1125,7 @@ static void import_module(RTLIL::Design *design, GhdlSynth::Module m)
 			add_formal_input(module, net_map, inst, "$anyseq");
 			break;
 		case Id_Tri:
-			module->addTribuf(to_str(iname), IN(1), IN(0), OUT(0));
+			module->addTribuf(to_str(iname), IN(1), IN(0), OUT(0))->set_src_attribute(src_loc);
 			break;
 		case Id_Resolver:
 			module->connect(OUT(0), IN(0));
